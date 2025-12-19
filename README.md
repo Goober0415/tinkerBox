@@ -1,2 +1,371 @@
-Generated README
-# Particle Projects Overview ## Table of Contents 1. [PapaDuckie Room Controller](#papaduckie-room-controller) 2. [Helping Hands Memory Companion](#helping-hands-memory-companion) 3. [Automated Plant Watering System](#automated-plant-watering-system) 4. [Potty Training Urinal](#potty-training-urinal) 5. [Kids GPS Tracker for Camping](#kids-gps-tracker-for-camping) --- ## 1. PapaDuckie Room Controller **Device:** Particle Photon 2 **Purpose:** A tactile wall controller that keeps lights, blinds, and small appliances approachable for every family member. ### Key Features - Custom capacitive touch buttons with LED feedback - Local‑control fallback when the cloud is offline - Rules engine for routines (movie time, bedtime, away) ### Particle CLI Usage ```bash # Compile and flash OTA‑safe firmware particle compile photon2 src/room_controller --target 2.0.0 particle flash --target photon2 firmware.bin # Set up webhook‑driven automations particle cloud function set roomRule --handler src/rules.js ``` ### Photon 2 Specifics - Uses **OTA‑safe** partitions to guarantee a rollback‑able image. - Leverages the **Particle Device OS** `system_mode` API for local fallback when `Particle.connected()` is false. - LED feedback driven via the **GPIO‑PWM** peripheral; ensure `pinMode` is set to `OUTPUT` before the first `digitalWrite`. --- ## 2. Helping Hands Memory Companion **Device:** Particle Boron (LTE) **Purpose:** A wearable‑inspired hub that sends gentle reminders, medication prompts, and location breadcrumbs for family caregivers. ### Key Features - Medication, hydration, and appointment reminders - Location sharing and geofence alerts - Simple caregiver dashboard via Particle Console ### Particle CLI Usage ```bash # Build with LTE libraries particle compile boron src/memory_companion --target 2.0.0 particle flash --target boron firmware.bin # Deploy a secure cloud function for reminder scheduling particle cloud function set scheduleReminder --handler src/reminder.js ``` ### Boron (LTE) Specifics - Uses **Cellular‑Ready** firmware (`system_mode(LTE)`). - Enables **Secure Cloud Functions** with `Particle.publish` over TLS. - OTA updates are staged with `particle update start` to guarantee rollback on power loss. --- ## 3. Automated Plant Watering System **Device:** Particle Photon 2 **Purpose:** Soil‑moisture driven irrigation that keeps thirsty plants happy without constant babysitting. ### Key Features - Capacitive soil probes with automatic calibration - Pump control with manual top‑up mode - Alerts when water level or moisture is low ### Particle CLI Usage ```bash particle compile photon2 src/plant_watering --target 2.0.0 particle flash --target photon2 firmware.bin # Schedule a daily check‑in (cron) via cloud function particle cloud function set moistureCheck --handler src/moisture.js --schedule "0 8 * * *" ``` ### Photon 2 Specifics - Utilises **ADC** for high‑resolution moisture readings; calibrate with `Particle.variable("soilCal", &cal); - Pump driver runs on **PWM** with a safety timeout (`millis()` guard). - OTA updates are throttled to night‑time to avoid watering interruptions. --- ## 4. Potty Training Urinal **Device:** Particle Photon 2 **Purpose:** A toddler‑friendly urinal that rewards progress with sounds, lights, and milestone tracking. ### Key Features - Motion‑activated lighting and sound cues - Celebration routine when success is detected - Parent‑facing milestone log via Particle Console ### Particle CLI Usage ```bash particle compile photon2 src/urinal --target 2.0.0 particle flash --target photon2 firmware.bin # Create an A/B test for sound cues particle cloud function set soundTestA --handler src/soundA.js particle cloud function set soundTestB --handler src/soundB.js ``` ### Photon 2 Specifics - Uses **A/B testing** via `Particle.publish("ab_test", ...)` to compare sound profiles. - All actuators (buzzer, LEDs) are driven through **low‑current GPIO** to meet child‑safety standards. - Firmware includes a **watchdog** that reboots on missed sensor reads. --- ## 5. Kids GPS Tracker for Camping **Device:** Particle Boron (LTE) **Purpose:** A rugged, kid‑worn tracker that keeps families aware of each other's location on the trail. ### Key Features - Geofence alerts when campers drift too far - Breadcrumb trail stored in the cloud - Low‑power modes to stretch battery life ### Particle CLI Usage ```bash particle compile boron src/gps_tracker --target 2.0.0 particle flash --target boron firmware.bin # Enable low‑power mode and periodic GPS publish particle cloud function set startTracking --handler src/tracker.js ``` ### Boron (LTE) Specifics - Leverages **Cellular‑Optimized** `Particle.connect()` with `keepAlive` set to 30 s. - Power‑save: `System.sleep(SLEEP_MODE_DEEP, 60000);` after each GPS fix. - Firmware rollbacks are tested with `particle update rollback `. --- ## Common Build Steps (All Projects) ```bash # 1. Install the latest Particle CLI npm install -g particle-cli # 2. Log in to your Particle account particle login # 3. Set the target device type (Photon2 or Boron) particle target photon2 # or particle target boron # 4. Compile and flash (replace ) particle compile src/ --target 2.0.0 particle flash --target firmware.bin ``` ## Troubleshooting (selected) - **OTA fails with “insufficient space”** – Run `particle flash --factory` to reset the OTA partition, then re‑flash. - **LTE not connecting** – Verify SIM is active, check `Particle.connected()` and inspect the `system_status` event. - **Capacitive sensor reads erratic** – Re‑run the auto‑calibration routine (`Particle.function("calibrate", ...)`). --- *All code snippets are ready to copy into the `src/` folder of each project. Adjust the `--target` flag if a newer Device OS version is required.*
+# Particle IoT Project Collection
+
+> A comprehensive collection of Particle Photon2 and Boron projects for home automation, caregiving, and outdoor adventures. Each project includes complete hardware documentation, CLI workflows, and troubleshooting guides.
+
+## Table of Contents
+
+- [Projects Overview](#projects-overview)
+- [Hardware Requirements](#hardware-requirements)
+- [Installation & Setup](#installation--setup)
+- [Particle CLI Workflow](#particle-cli-workflow)
+- [Project Details](#project-details)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Projects Overview
+
+|
+ Project 
+|
+ Device 
+|
+ Purpose 
+|
+ Key Features 
+|
+|
+---------
+|
+--------
+|
+---------
+|
+--------------
+|
+|
+ PapaDuckie Room Controller 
+|
+ Photon2 
+|
+ Centralized home automation 
+|
+ Capacitive touch, local fallback, webhook integration 
+|
+|
+ Helping Hands Memory Companion 
+|
+ Boron LTE 
+|
+ Caregiver assistance 
+|
+ Medication reminders, location sharing, offline safety 
+|
+|
+ Automated Plant Watering 
+|
+ Photon2 
+|
+ Smart irrigation 
+|
+ Soil moisture sensing, pump control, cloud monitoring 
+|
+|
+ Potty Training Urinal 
+|
+ Photon2 
+|
+ Child training aid 
+|
+ Motion detection, reward system, milestone tracking 
+|
+|
+ Kids GPS Tracker 
+|
+ Boron LTE 
+|
+ Outdoor safety 
+|
+ Geofencing, breadcrumb trails, low-power design 
+|
+
+## Hardware Requirements
+
+### Common Components
+
+- **Particle Photon2** - Wi-Fi enabled microcontroller
+- **Particle Boron** - LTE-M enabled microcontroller  
+- **Breadboard & Jumper Wires** - For prototyping
+- **Power Supply** - 5V 2A adapter or battery pack
+- **USB-C Cable** - Programming and power
+
+### Device-Specific Components
+
+#### PapaDuckie Room Controller
+- Capacitive touch sensors (×4)
+- LED indicators (×4)
+- 5V Relay module (×3)
+- DHT22 Temperature/Humidity sensor
+
+#### Helping Hands Memory Companion
+- GPS FeatherWing
+- OLED Display 0.96"
+- Vibration motor
+- Piezo buzzer
+
+#### Automated Plant Watering System
+- Soil moisture sensor (capacitive)
+- 12V water pump
+- Relay module
+- Water level sensor
+
+#### Potty Training Urinal
+- PIR motion sensor
+- Water flow sensor
+- RGB LED strip
+- Speaker module
+
+#### Kids GPS Tracker
+- GPS FeatherWing
+- LiPo battery (2000mAh)
+- Solar panel (optional)
+- Enclosure (IP65 rated)
+
+## Installation & Setup
+
+### 1. Prerequisites
+
+Install the Particle CLI based on your operating system:
+
+**macOS / Linux:**
+```bash
+bash <(curl -sL https://particle.io/install-cli)
+```
+
+**Windows:**
+Download and run the self-contained Windows CLI installer from the Particle website.
+
+### 2. Authentication
+
+```bash
+particle login
+```
+
+### 3. Device Setup
+
+1. Connect your Particle device via USB
+2. Put the device in listening mode (hold MODE for 3 seconds)
+3. Claim the device:
+   ```bash
+   particle device add
+   ```
+
+### 4. Clone Repository
+
+```bash
+git clone https://github.com/yourusername/particle-iot-projects.git
+cd particle-iot-projects
+```
+
+## Particle CLI Workflow
+
+### Basic Commands
+
+```bash
+# List all devices
+particle list
+
+# Compile firmware
+particle compile photon2 project-folder --saveTo firmware.bin
+
+# Flash firmware to device
+particle flash  firmware.bin
+
+# Monitor serial output
+particle serial monitor
+
+# Call cloud function
+particle call   
+
+# Publish event
+particle publish  
+```
+
+### OTA Updates
+
+```bash
+# Target specific Device OS version
+particle flash  firmware.bin --target 5.6.0
+
+# Bundle assets with firmware
+particle compile photon2 . --saveTo bundle.bin
+```
+
+## Project Details
+
+### PapaDuckie Room Controller
+
+**Purpose:** Centralized control for lights, blinds, and appliances with tactile interface.
+
+**Wiring:**
+- D0-D3: Capacitive touch sensors
+- D4-D6: Relay control pins
+- A0: DHT22 data pin
+- VIN: 5V power
+
+**Key Functions:**
+- `toggleLight` - Control main lights
+- `setBlindPosition` - Adjust blind height (0-100%)
+- `movieMode` - Activate preset scene
+
+**Particle CLI Usage:**
+```bash
+particle call photon2 toggleLight on
+particle call photon2 setBlindPosition 50
+particle publish roomController/movieMode
+```
+
+### Helping Hands Memory Companion
+
+**Purpose:** Gentle reminders and location sharing for elderly care.
+
+**Power Management:**
+- ULP sleep mode between checks
+- Battery monitoring with low-power alerts
+- LTE connection only when needed
+
+**Key Functions:**
+- `setReminder` - Schedule medication/appointment
+- `getLocation` - Request current GPS coordinates
+- `emergencyAlert` - Send urgent notification
+
+**Particle CLI Usage:**
+```bash
+particle call boron setReminder "Medication,09:00,daily"
+particle call boron getLocation
+particle subscribe helpingHands/alerts
+```
+
+### Automated Plant Watering System
+
+**Purpose:** Soil-moisture driven irrigation with manual override.
+
+**Sensor Calibration:**
+- Dry soil: >3000 ADC
+- Optimal: 1500-2000 ADC  
+- Wet soil: <1000 ADC
+
+**Key Functions:**
+- `waterNow` - Manual watering cycle
+- `setThreshold` - Configure moisture trigger
+- `getStatus` - Return system state
+
+**Particle CLI Usage:**
+```bash
+particle call photon2 waterNow
+particle call photon2 setThreshold 1800
+particle subscribe plantWatering/status
+```
+
+### Potty Training Urinal
+
+**Purpose:** Reward-based training with progress tracking.
+
+**Detection Logic:**
+- PIR sensor detects approach
+- Flow sensor confirms usage
+- Success triggers reward sequence
+
+**Key Functions:**
+- `calibrate` - Set sensitivity thresholds
+- `recordAttempt` - Log training session
+- `getStats` - Retrieve progress data
+
+**Particle CLI Usage:**
+```bash
+particle call photon2 calibrate
+particle call photon2 recordAttempt success
+particle call photon2 getStats
+```
+
+### Kids GPS Tracker
+
+**Purpose:** Child safety with geofencing and breadcrumb tracking.
+
+**Low Power Features:**
+- GPS warm-start with coin cell backup
+- Publish interval: 5 minutes (configurable)
+- Sleep mode: <10µA current draw
+
+**Key Functions:**
+- `setGeofence` - Define safe area
+- `updateInterval` - Change reporting frequency
+- `emergencyMode` - High-frequency tracking
+
+**Particle CLI Usage:**
+```bash
+particle call boron setGeofence "37.7749,-122.4194,0.5"
+particle call boron updateInterval 300
+particle subscribe gpsTracker/emergency
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Device Not Connecting**
+- Check Wi-Fi/cellular signal strength
+- Verify device is in breathing cyan state
+- Run `particle serial monitor` for debug output
+
+**Compilation Errors**
+- Ensure all libraries are installed:
+  ```bash
+  particle library add <library-name>
+  ```
+- Check Device OS version compatibility
+
+**OTA Update Failures**
+- Verify device has sufficient battery/power
+- Check available flash space
+- Use `particle firmware list` to manage versions
+
+**Sensor Issues**
+- Verify wiring connections
+- Check power supply voltage
+- Calibrate sensors per project documentation
+
+### Debug Commands
+
+```bash
+# Check device status
+particle device inspect 
+
+# View device variables
+particle get  
+
+# Monitor events
+particle subscribe mine
+
+# Reset device
+particle call  reset
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- **Documentation:** [Particle Docs](https://docs.particle.io/)
+- **Community:** [Particle Forums](https://community.particle.io/)
+- **Issues:** [GitHub Issues](https://github.com/yourusername/particle-iot-projects/issues)
+
+## Acknowledgments
+
+- Particle Inc. for the excellent hardware platform
+- The open-source community for libraries and examples
+- Contributors who help improve these projects
+
+---
+
+**Last Updated:** ```date```
+**Version:** 1.0.0
